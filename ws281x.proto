@@ -1,0 +1,63 @@
+syntax = "proto3";
+package ws281x;
+
+message WS2811_Channel {
+  int32 gpionum = 1;
+  int32 invert = 2;
+  int32 count = 3;
+  int32 strip_type = 4;
+  repeated uint32 leds = 5;
+  uint32 brightness = 6;
+  uint32 wshift = 7;
+  uint32 rshift = 8;
+  uint32 gshift = 9;
+  uint32 bshift = 10;
+  repeated uint32 gamma = 11;
+}
+
+message WS2811RenderRequest {
+  repeated uint32 leds = 1;
+}
+
+message WS2811_Data {
+  uint64 render_wait_time = 1;
+  uint32 freq = 4;
+  int32 dmanum = 5;
+  repeated WS2811_Channel channel = 6;
+}
+
+enum WS2811_Result {
+  WS2811_SUCCESS = 0;
+  WS2811_ERROR_GENERIC = 1;
+  WS2811_ERROR_OUT_OF_MEMORY = 2;
+  WS2811_ERROR_HW_NOT_SUPPORTED = 3;
+  WS2811_ERROR_MEM_LOCK = 4;
+  WS2811_ERROR_MMAP = 5;
+  WS2811_ERROR_MAP_REGISTERS = 6;
+  WS2811_ERROR_GPIO_INIT = 7;
+  WS2811_ERROR_PWM_SETUP = 8;
+  WS2811_ERROR_MAILBOX_DEVICE = 9;
+  WS2811_ERROR_DMA = 10;
+  WS2811_ERROR_ILLEGAL_GPIO = 11;
+  WS2811_ERROR_PCM_SETUP = 12;
+  WS2811_ERROR_SPI_SETUP = 13;
+  WS2811_ERROR_SPI_TRANSFER = 14;
+}
+
+message WS2811Response
+{
+  WS2811_Result result = 1;
+}
+
+enum WS2811_Method {
+  WS2811_INIT = 0;
+  WS2811_FINI = 1;
+  WS2811_RENDER = 2;
+  WS2811_WAIT = 3;
+  WS2811_EXIT = 4;
+}
+
+message MethodCall{
+  WS2811_Method method = 1;
+  WS2811_Data data = 2;
+}
