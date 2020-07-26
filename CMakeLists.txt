@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.13)
-project(rpc VERSION 1.0)
+project(libws2811_remote VERSION 1.0)
+
+if(POLICY CMP0086)
+  cmake_policy(SET CMP0086 NEW)
+endif()
 
 set(CMAKE_BUILD_TYPE Debug)
 
@@ -36,3 +40,6 @@ target_include_directories(test PUBLIC ${ZMQ_INCLUDE_DIRS})
 
 target_compile_options(test PUBLIC ${ZMQ_CFLAGS_OTHER})
 target_compile_options(libws2811_remote PUBLIC ${ZMQ_CFLAGS_OTHER})
+
+# Add swig subdirectory
+add_subdirectory(swig)
