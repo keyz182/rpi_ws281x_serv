@@ -14,9 +14,61 @@
 
 ws281x::WS2811_Data data;
 zmq::socket_t * client;
-zmq::context_t context (1);
+zmq::context_t *context = new zmq::context_t(1);
 bool serverInited = false;
+bool shutdownHandlerRegistered = false;
 
+
+void closeClient(){
+    if(serverInited){
+        printf("Closing Server");
+        serverInited = false;
+        shutdownHandlerRegistered = false;
+        int linger = 0;
+        client->setsockopt (ZMQ_LINGER, &linger, sizeof (linger));
+        client->close();
+        context->close();
+        delete client;
+    }
+}
+
+void sig_term_handler(int signum, siginfo_t *info, void *ptr)
+{
+    closeClient();
+}
+
+void registerShutdownHandler(){
+    if(!shutdownHandlerRegistered){
+        const int result_1 = std::atexit(closeClient);
+
+        if ((result_1 != 0) ) {
+            std::cerr << "Shutdown Handler Registration failed\n";
+        }
+
+        static struct sigaction _sigact;
+
+        memset(&_sigact, 0, sizeof(_sigact));
+        _sigact.sa_sigaction = sig_term_handler;
+        _sigact.sa_flags = SA_SIGINFO;
+
+        sigaction(SIGTERM, &_sigact, NULL);
+
+        shutdownHandlerRegistered = true;
+    }
+}
+
+void initClient(){
+    if(!serverInited){
+        client = new zmq::socket_t (*context, ZMQ_REQ);
+        client->setsockopt(ZMQ_IDENTITY, "ZMQ", strlen("ZMQ"));
+        char * url = getenv("WS2811_URL");
+        client->connect (url ? url : "tcp://127.0.0.1:8879");
+
+        serverInited = true;
+
+        registerShutdownHandler();
+    }
+}
 
 void WS281XToProto(ws281x::WS2811_Data *request, ws2811_t *ws2811){
     //Populate the protobuf object from the ws2811_t struct
@@ -53,6 +105,7 @@ void WS281XToProto(ws281x::WS2811_Data *request, ws2811_t *ws2811){
 }
 
 ws2811_return_t callMethod(::ws281x::WS2811_Method method, ws2811_t *ws2811){
+    initClient();
     ws281x::MethodCall *methodCall = new ws281x::MethodCall();
     methodCall->set_method(method);
     WS281XToProto(methodCall->mutable_data(), ws2811);
@@ -78,15 +131,6 @@ ws2811_return_t callMethod(::ws281x::WS2811_Method method, ws2811_t *ws2811){
 
 ws2811_return_t ws2811_init(ws2811_t *ws2811)
 {
-    if(!serverInited){
-        client = new zmq::socket_t (context, ZMQ_REQ);
-        client->setsockopt(ZMQ_IDENTITY, "ZMQ", strlen("ZMQ"));
-        char * url = getenv("WS2811_URL");
-        client->connect (url ? url : "tcp://127.0.0.1:8879");
-
-        serverInited = true;
-    }
-
     for (int chan = 0; chan < RPI_PWM_CHANNELS; chan++)
     {
         ws2811_channel_t *channel = &ws2811->channel[chan];
@@ -126,6 +170,7 @@ ws2811_return_t ws2811_init(ws2811_t *ws2811)
 void ws2811_fini(ws2811_t *ws2811)
 {
     callMethod(ws281x::WS2811_Method::WS2811_FINI, ws2811);
+    closeClient();
 }
 
 ws2811_return_t ws2811_wait(ws2811_t *ws2811)

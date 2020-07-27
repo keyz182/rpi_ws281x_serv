@@ -66,8 +66,13 @@ void ProtoToWS281X(const ws281x::WS2811_Data *request){
         if(request->channel(i).leds_size() > 0){
             VERBOSE("LED Incoming Count: %d\n", request->channel(i).leds_size());
             VERBOSE("LED Channel Count: %d\n", ledstrings.channel[i].count);
+            if(ledstrings.channel[i].leds == NULL){
+                ledstrings.channel[i].leds = (ws2811_led_t*)malloc(sizeof(ws2811_led_t) * request->channel(i).leds_size());
+                memset(ledstrings.channel[i].leds, 0, sizeof(ws2811_led_t) * request->channel(i).leds_size());
+            }
             for(int j = 0; j < ledstrings.channel[i].count; j++){
-                ledstrings.channel[i].leds[j] = (uint32_t)(request->channel(i).leds(j));
+                uint32_t val = (uint32_t)(request->channel(i).leds(j));
+                ledstrings.channel[i].leds[j] = val;
                 VERBOSE("%d: %#06x\n", j , ledstrings.channel[i].leds[j]);
             }
         }
@@ -151,13 +156,13 @@ int main (int argc, char *argv[]) {
     {
         ws2811_channel_t *channel = &ledstrings.channel[chan];
 
-        channel->leds = (ws2811_led_t*)malloc(sizeof(ws2811_led_t) * channel->count);
-        if (!channel->leds)
-        {
-            return WS2811_ERROR_OUT_OF_MEMORY;
-        }
+//        channel->leds = (ws2811_led_t*)malloc(sizeof(ws2811_led_t) * channel->count);
+//        if (!channel->leds)
+//        {
+//            return WS2811_ERROR_OUT_OF_MEMORY;
+//        }
 
-        memset(channel->leds, 0, sizeof(ws2811_led_t) * channel->count);
+//        memset(channel->leds, 0, sizeof(ws2811_led_t) * channel->count);
 
         if (!channel->strip_type)
         {
@@ -226,6 +231,11 @@ int main (int argc, char *argv[]) {
                     std::cout << "invert: " << ledstrings.channel[0].invert << std::endl;
                     std::cout << "brightness: " << (int)(ledstrings.channel[0].brightness) << std::endl;
                     std::cout << "strip_type: " << ledstrings.channel[0].strip_type << std::endl;
+
+                    if(ledstrings.channel[0].leds){
+                        //Make sure we don't leak
+                        free(ledstrings.channel[0].leds);
+                    }
                     if ((ret = ws2811_init(&ledstrings)) != WS2811_SUCCESS)
                     {
                         fprintf(stderr, "[RPI_WS281x] ws2811_init failed: %s\n", ws2811_get_return_t_str(ret));
