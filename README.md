@@ -4,6 +4,8 @@ Lightweight Root server and client lib for rpi_ws281x
 Provides a server to run as root utilizing ZeroMQ for messaging, and Protobuf as the message format.
 Also provides a client lib that exposes a matching interface to rpi_ws281x, with the aim of allowing userspace apps to use rpi_ws281x with little to no changes.
 
+Still a work-in-progress. Server occasionally crashes on client disconnect/reconnect.
+
 ### Requires
  - ZeroMQ (`sudo apt install libzmq3-dev`)
  - Protobuf (`sudo apt install libprotobuf-dev protobuf-compiler`)
