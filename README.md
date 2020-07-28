@@ -10,6 +10,7 @@ Still a work-in-progress.
  - ZeroMQ (`sudo apt install libzmq3-dev`)
  - Protobuf (`sudo apt install libprotobuf-dev protobuf-compiler`)
  - cmake (`sudo apt install cmake`)
+ - swig (`sudo apt install swig`)
 
 ### Building
  - `mkdir build`
