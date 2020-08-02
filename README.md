@@ -27,6 +27,7 @@ Python is a bit of a work in progress build-wise. For now, do:
  - `cd build/swig/python`
  - `sudo python3 setup.py build`
  - `sudo python3 setup.py sdist`
+ - `sudo python3 -m pip uninstall rpi_ws281x`
  - `sudo python3 -m pip install --upgrade --force-reinstall dist/rpi_ws281x-*.tar.gz`
 
 Then run one of the examples in https://github.com/rpi-ws281x/rpi-ws281x-python/tree/master/examples
